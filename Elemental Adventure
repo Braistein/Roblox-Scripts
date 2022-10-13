@@ -1,0 +1,42 @@
+-- Elemental Adventure
+if game.PlaceId == 596894229 then
+    local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/lolpoppyus/Roblox-Lua/master/Pop%20UI%20Lib", true))()
+    local Players = game:GetService("Players")
+
+    local Tab = library:Tab("Space Hub")
+
+    Tab:Label("Space#1234")
+
+    Tab:Button("Max stats", function()
+        game.Players.LocalPlayer.PlayerData.Stats.Stamina.Value = 400
+    end)
+
+    Tab:Button("Fly, Key(x)", function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Nicuse/RobloxScripts/main/BypassedFly.lua"))() 
+        Fly(true)
+    end)
+
+    Tab:Button("Slite Hub", function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/SnowyXS/SLite/main/loader.lua"))()
+    end)
+
+    Tab:Keybind("UI", function(enabled)
+        game:GetService("CoreGui").OfficialUILib.Enabled = not game:GetService("CoreGui").OfficialUILib.Enabled;
+     end,Enum.KeyCode.T);
+
+    local update = Tab:Dropdown("Players", {},function(arg)
+        local plr = Players.LocalPlayer.Character.HumanoidRootPart
+        local target = Players[arg].Character.HumanoidRootPart
+        plr.CFrame = target.CFrame
+     end)
+     while wait(1) do
+        local players = game.Players:GetChildren()
+        local array = {}
+     
+        for i,v in pairs(players) do
+            table.insert(array,v.Name)
+        end
+     
+        update(array)
+    end
+end
