@@ -1,42 +1,199 @@
--- Elemental Adventure
-if game.PlaceId == 596894229 then
-    local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/lolpoppyus/Roblox-Lua/master/Pop%20UI%20Lib", true))()
-    local Players = game:GetService("Players")
+getgenv().infHealth = false
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ShSpace/UI-Source/main/Space%20Hub%20Source"))()
+local venyx = library.new("Serpent Hub", 5013109572)
 
-    local Tab = library:Tab("Space Hub")
+-- locals
+local PlayerName = game:GetService("Players").LocalPlayer.Name
+local Players = game:GetService("Players")
+local Stats = game:GetService("Stats")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character
+local humanoid = Character.Humanoid
+local humanoidRootPart = Character.PrimaryPart
+local mainMenu = LocalPlayer.PlayerGui:WaitForChild("MainMenu")
+local menuControlInstance = mainMenu:WaitForChild("MenuControl")
+local scroll = workspace:FindFirstChild("ScrollModel")
+local UIS = game:GetService("UserInputService")
+local lastCFrame = humanoidRootPart.CFrame
+local networkStats = Stats.Network
+local serverStatsItem = networkStats.ServerStatsItem
+local dataPing = serverStatsItem["Data Ping"]
 
-    Tab:Label("Space#1234")
+-- autofarm
+local farm = venyx:addPage("Farms & Subs", 5012544693)
+local section1 = farm:addSection("Auto Farm (Coming Soon)")
+local section2 = farm:addSection("Sub Changer (Coming Soon)")
 
-    Tab:Button("Max stats", function()
-        game.Players.LocalPlayer.PlayerData.Stats.Stamina.Value = 400
-    end)
-
-    Tab:Button("Fly, Key(x)", function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/Nicuse/RobloxScripts/main/BypassedFly.lua"))() 
-        Fly(true)
-    end)
-
-    Tab:Button("Slite Hub", function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/SnowyXS/SLite/main/loader.lua"))()
-    end)
-
-    Tab:Keybind("UI", function(enabled)
-        game:GetService("CoreGui").OfficialUILib.Enabled = not game:GetService("CoreGui").OfficialUILib.Enabled;
-     end,Enum.KeyCode.T);
-
-    local update = Tab:Dropdown("Players", {},function(arg)
-        local plr = Players.LocalPlayer.Character.HumanoidRootPart
-        local target = Players[arg].Character.HumanoidRootPart
-        plr.CFrame = target.CFrame
-     end)
-     while wait(1) do
-        local players = game.Players:GetChildren()
-        local array = {}
-     
-        for i,v in pairs(players) do
-            table.insert(array,v.Name)
-        end
-     
-        update(array)
+-- players
+local players = venyx:addPage("Players", 5012544693)
+local section8 = players:addSection("Players")
+local PlayerTable = {}
+function updatePlayers()
+    PlayerTable = {}
+    for i,v in pairs(game:GetService("Players"):GetChildren()) do
+        table.insert(PlayerTable, v.Name) 
     end
+end
+local playersDropDown = section8:addDropdown("Players", PlayerTable, function(value)
+    SelectedPlayer = value
+end)
+task.spawn(function()
+    while wait() do
+       for i,v in pairs(game:GetService("Players"):GetChildren()) do
+           if table.find(PlayerTable, v.Name) == nil then
+                updatePlayers()
+                section8:updateDropdown(playersDropDown, "Players", PlayerTable, function(value)
+                SelectedPlayer = value
+                end)
+            end
+       end
+        for i,v in pairs(PlayerTable) do
+            if not game:GetService("Players"):FindFirstChild(v) then
+                updatePlayers()
+                section8:updateDropdown(playersDropDown, "Players", PlayerTable, function(value)
+                SelectedPlayer = value
+                end)
+            end
+        end
+    end
+end)
+section8:addButton("Teleport to Player", function()
+    game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Players")[SelectedPlayer].Character.HumanoidRootPart.CFrame
+end)
+section8:addButton("Stats Checker", function(value)
+    local defense = game:GetService("Players")[SelectedPlayer].PlayerData.Stats.Defense.Value
+    local strength = game:GetService("Players")[SelectedPlayer].PlayerData.Stats.Strength.Value
+    local stamina = game:GetService("Players")[SelectedPlayer].PlayerData.Stats.Stamina.Value
+    local scrolltype = game:GetService("Players")[SelectedPlayer].PlayerData.Appearance.ScrollType.Value
+    local playermoney = game:GetService("Players")[SelectedPlayer].PlayerData.Stats.Money5.Value
+    print("-> Player Name:", SelectedPlayer, 
+    "-> Defense:", defense, 
+    "-> Strength:", strength, 
+    "-> Stamina", stamina, 
+    "-> Scroll:", scrolltype,
+    "-> Money:", playermoney)
+end)
+
+
+-- misc
+local misc = venyx:addPage("Misc", 5012544693)
+local section3 = misc:addSection("God Mode")
+local section4 = misc:addSection("Stats")
+local section5 = misc:addSection("Speed&Jump")
+local section6 = misc:addSection("Specials")
+local section7 = misc:addSection("Scroll")
+
+section3:addToggle("God Mode", nil, function(value)
+	getgenv().infHealth = value
+    if value and selectedSlot then
+        beGod(selectedSlot)
+    end
+end)
+SlotsTable = {"Slot01", "Slot02", "Slot03", "Slot04", "Slot05", "Slot06", "Slot07", "Slot08", "Slot09", "Slot10", "Slot11", "Slot12", "Slot13", "Slot14", "Slot15", "Slot16"}
+
+section3:addDropdown("Slots", SlotsTable , function(value)
+    selectedSlot = value
+end)
+
+section4:addButton("Max Stamina", function()
+	game:GetService("Players")[PlayerName].PlayerData.Stats.Stamina.Value = 400
+end)
+
+section5:addSlider("Walk Speed", 16, 16, 200, function(value)
+    local h = game.Players.LocalPlayer.Character.Humanoid
+    local current_ws = 16
+    for i,v in pairs(getconnections(humanoid.Changed)) do v:Disable() end
+    local mt = getrawmetatable(game)
+    setreadonly(mt,false)
+    local backup = mt.__index
+    local backup2 = mt.__newindex
+    mt.__index = newcclosure(function(tbl,idx)
+    if checkcaller() then return backup(tbl,idx) end
+    if tbl == humanoid and idx == "WalkSpeed" then
+    return current_ws
+    end
+    return backup(tbl,idx)
+    end)
+    mt.__newindex = newcclosure(function(tbl,idx,val)
+    if checkcaller() then return backup2(tbl,idx,val) end
+    if tbl == humanoid and idx == "WalkSpeed" then
+    current_ws = val
+    return os.time()
+    end
+    return backup2(tbl,idx,val)
+    end)
+    setreadonly(mt,true)
+    wait(1)
+    while true do
+        humanoid.WalkSpeed = value
+        task.wait()
+    end
+    if value == 16 then
+        humanoid.WalkSpeed = 16
+    end
+end)
+
+section5:addButton("Inf Jump", function()
+    local Player = game:GetService'Players'.LocalPlayer;
+    local UIS = game:GetService'UserInputService';
+    _G.JumpHeight = 100;
+    function Action(Object, Function) if Object ~= nil then Function(Object); end end
+    UIS.InputBegan:connect(function(UserInput)
+        if UserInput.UserInputType == Enum.UserInputType.Keyboard and UserInput.KeyCode == Enum.KeyCode.Space then
+            Action(Player.Character.Humanoid, function(self)
+                if self:GetState() == Enum.HumanoidStateType.Jumping or self:GetState() == Enum.HumanoidStateType.Freefall then
+                    Action(self.Parent.HumanoidRootPart, function(self)
+                        self.Velocity = Vector3.new(0, _G.JumpHeight, 0);
+                    end)
+                end
+            end)
+        end
+    end)
+end)
+
+section5:addButton("Fly (x)", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Nicuse/RobloxScripts/main/BypassedFly.lua"))() 
+    Fly(true)
+end)
+
+section6:addButton("UnBlind", function()
+    game:GetService("Players").LocalPlayer.PlayerGui.MainMenu.MetalPlate.Visible = false
+end)
+
+section6:addButton("UnBloodBend", function()
+    while true do
+        game:GetService("Workspace")[PlayerName].Bloodbent:Destroy()
+        wait()
+    end
+end)
+section7:addButton("Get Scroll", function()
+    humanoidRootPart.CFrame = scroll.PrimaryPart.CFrame
+    task.wait(dataPing:GetValue() / 1000)
+    fireclickdetector(scroll.ClickDetector)
+    humanoidRootPart.CFrame = lastCFrame
+end)
+local credits = venyx:addPage("Credits", 5012544693)
+local section9 = credits:addSection("Maked By Serpent#3608")
+local section10 = credits:addSection("Join Discord")
+section10:addButton("Copy Discord Link", function()
+	setclipboard("https://discord.gg/5nF8HcVRcc")
+end)
+section10:addKeybind("Ui Keybind", Enum.KeyCode.RightShift, function()
+	venyx:toggle()
+end)
+-- functions
+function beGod(selectedSlot)
+    spawn(function()
+        while infHealth == true do
+            local A_1 = "Equip"
+            local A_2 = {["ItemType"] = "Helmet", ["Slot"] = selectedSlot}
+            local Event = game:GetService("ReplicatedStorage").NetworkFolder.GameFunction
+            Event:InvokeServer(A_1, A_2)
+            game:GetService("Workspace")[PlayerName].Helmet:Destroy()
+            local A_1 = "Unequip"
+            local A_2 = {["ItemType"] = "Helmet"}
+            local Event = game:GetService("ReplicatedStorage").NetworkFolder.GameFunction
+            Event:InvokeServer(A_1, A_2)
+        end
+    end)
 end
