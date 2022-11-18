@@ -173,7 +173,7 @@ section7:addButton("Get Scroll", function()
     humanoidRootPart.CFrame = lastCFrame
 end)
 local credits = venyx:addPage("Credits", 5012544693)
-local section9 = credits:addSection("Maked By Serpent#3608")
+local section9 = credits:addSection("Made By Serpent#3608")
 local section10 = credits:addSection("Join Discord")
 section10:addButton("Copy Discord Link", function()
 	setclipboard("https://discord.gg/5nF8HcVRcc")
